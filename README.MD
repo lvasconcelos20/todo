@@ -17,6 +17,9 @@ Este é um aplicativo de To-Do que permite aos usuários criar, gerenciar e conc
 3. **Identificação do Usuário**
    - O nome do usuário logado é exibido na interface, facilitando a identificação da conta ativa.
 
+4. **Gráfico de Tarefas**
+   - Utilizando o Chart.js, foi implementado um gráfico que exibe visualmente a quantidade total de tarefas criadas e quantas delas já foram concluídas, facilitando o acompanhamento do progresso do usuário.
+
 ## Tecnologias Utilizadas
 
 ### Backend
@@ -29,6 +32,7 @@ Este é um aplicativo de To-Do que permite aos usuários criar, gerenciar e conc
 - **React**: Biblioteca JavaScript utilizada para construção da interface do usuário.
 - **Typescript**: Linguagem utilizada para garantir a tipagem estática e melhorar a qualidade do código.
 - **Styled-components**: Biblioteca para estilização dos componentes, permitindo o uso de CSS em JavaScript de forma eficiente e modular.
+- **Chart.js**: Biblioteca JavaScript utilizada para criar gráficos interativos e dinâmicos, usada aqui para exibir o progresso das tarefas.
 
 ## Como Executar o Projeto
 
