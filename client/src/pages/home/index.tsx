@@ -1,9 +1,9 @@
+"use client";
 import React, { useState, useMemo, useEffect } from "react";
 import dynamic from 'next/dynamic';
 import {
   Container,
   Sidebar,
- 
   Navbar,
   FooterContainer,
   Text,
@@ -41,7 +41,11 @@ const HomeScreen: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [tasks, setTasks] = useState<Todo[]>([]);
-  const { createTodo, deleteTodo } = useTodoActions();
+  const [page, setPage] = useState(1); // Página atual para paginação
+  const [isLoading, setIsLoading] = useState(false); // Estado de carregamento para o scroll infinito
+  const [hasMore, setHasMore] = useState(true); // Controle para saber se há mais tarefas a carregar
+
+  const { createTodo, deleteTodo, fetchTodos } = useTodoActions(); // Supondo que haja uma função fetchTodos na API para buscar mais tarefas
   const router = useRouter();
 
   const totalTasks = tasks.length;
@@ -75,6 +79,35 @@ const HomeScreen: React.FC = () => {
       setUser({ userName: storedUserName });
     }
   }, []);
+
+  // Função para buscar tarefas paginadas da API
+  const fetchMoreTasks = async () => {
+    if (isLoading || !hasMore) return; // Evita múltiplas chamadas enquanto carrega ou se não houver mais dados
+
+    setIsLoading(true);
+    try {
+      const newTasks = await fetchTodos(page); // Supondo que fetchTodos seja uma função da API que aceita a página como parâmetro
+      setTasks((prevTasks) => [...prevTasks, ...newTasks]); // Adiciona as novas tarefas à lista existente
+      setHasMore(newTasks.length > 0); // Se o número de novas tarefas for zero, para de carregar mais
+      setPage(page + 1); // Atualiza a página
+    } catch (error) {
+      console.error("Erro ao buscar mais tarefas:", error);
+    } finally {
+      setIsLoading(false); // Finaliza o carregamento
+    }
+  };
+
+  // Função para monitorar o scroll e carregar mais tarefas quando o usuário chegar ao fim da página
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 100) {
+        fetchMoreTasks(); // Chama a função de carregar mais tarefas
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll); // Remove o listener quando o componente desmonta
+  }, [page, hasMore, isLoading]);
 
   const handleDeleteTask = async (id: number) => {
     const success = await deleteTodo(id);
@@ -123,21 +156,20 @@ const HomeScreen: React.FC = () => {
         </Navbar>
 
         <Sidebar>
-          <Profile> 
-            <Image src={Perfil} alt="User Avatar" width={100} height={100}  className="user-avatar" />
-          <h2 style={{ color: '#F9F9F9'}}>Olá, {user.userName}</h2>
+          <Profile>
+            <Image src={Perfil} alt="User Avatar" width={100} height={100} className="user-avatar" />
+            <h2 style={{ color: '#F9F9F9'}}>Olá, {user.userName}</h2>
           </Profile>   
          
-            <DynamicProgressChart 
-                data={data} 
-                options={options} 
-                progressPercentage={progressPercentage}
-                completedTasks={completedTasks}
-                totalTaks={totalTasks}
-            
-            />
+          <DynamicProgressChart 
+              data={data} 
+              options={options} 
+              progressPercentage={progressPercentage}
+              completedTasks={completedTasks}
+              totalTaks={totalTasks}
+          />
                     
-          <FooterContainer >
+          <FooterContainer>
             <Image src={Logo} alt="logo" width={38} height={38} />
             <Text>
               <h2>do it!</h2>
@@ -162,6 +194,9 @@ const HomeScreen: React.FC = () => {
       {isPopupOpen && (
         <Popup onClose={togglePopup} onSubmit={handleAddTodo} />
       )}
+
+      {isLoading && <p>Carregando mais tarefas...</p>}
+      {!hasMore && <p>Não há mais tarefas a carregar.</p>}
     </Container>
   );
 };

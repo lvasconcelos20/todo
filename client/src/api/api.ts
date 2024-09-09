@@ -18,12 +18,14 @@ interface UserActions {
 export const useTodoActions = ():  {
     createTodo: (todo: Omit<Todo, 'id'>) => Promise<Todo | null>;
     deleteTodo: (id: number) => Promise<boolean>;
+    fetchTodos: (page: number) => Promise<Todo[]>;
     loading: boolean;
     error: string | null;
 } => {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Função para criar uma nova tarefa
     const createTodo = async (todo: Omit<Todo, 'id'>): Promise<Todo | null> => {
         setLoading(true);
         setError(null);
@@ -39,6 +41,7 @@ export const useTodoActions = ():  {
         }
     };
 
+    // Função para deletar uma tarefa
     const deleteTodo = async (id: number): Promise<boolean> => {
         setLoading(true);
         setError(null);
@@ -54,7 +57,23 @@ export const useTodoActions = ():  {
         }
     };
 
-    return { createTodo, loading, error, deleteTodo };
+    // Função para buscar tarefas paginadas (para infinite scroll)
+    const fetchTodos = async (page: number): Promise<Todo[]> => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await axios.get(`http://127.0.0.1:8000/api/todos/?page=${page}`);
+            return response.data;
+        } catch (error) {
+            setError('Failed to fetch Todos');
+            console.error(error);
+            return [];
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { createTodo, deleteTodo, fetchTodos, loading, error };
 };
 
 export const useUserActions = (): UserActions => {
